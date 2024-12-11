@@ -11,8 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.util.Arrays;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class TestChatRequestSerialization extends AbstractSerializationTest<OllamaChatRequest> {
 
@@ -117,7 +116,7 @@ public class TestChatRequestSerialization extends AbstractSerializationTest<Olla
     public void testWithStreaming() {
         OllamaChatRequest req = builder.withStreaming().build();
         String jsonRequest = serialize(req);
-        assertEquals(true, deserialize(jsonRequest, OllamaChatRequest.class).isStream());
+        assertTrue(deserialize(jsonRequest, OllamaChatRequest.class).isStream());
     }
 
     @Test
