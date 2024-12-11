@@ -140,13 +140,13 @@ class TestRealAPIs {
     void testAskModelWithDefaultOptionsStreamed() {
         testEndpointReachability();
         try {
-            StringBuffer sb = new StringBuffer("");
+            StringBuffer sb = new StringBuffer();
             OllamaResult result = ollamaAPI.generate(config.getModel(),
                     "What is the capital of France? And what's France's connection with Mona Lisa?",
                     false,
                     new OptionsBuilder().build(), (s) -> {
                         LOG.info(s);
-                        String substring = s.substring(sb.toString().length(), s.length());
+                        String substring = s.substring(sb.toString().length());
                         LOG.info(substring);
                         sb.append(substring);
                     });
@@ -231,11 +231,11 @@ class TestRealAPIs {
                             "What is the capital of France? And what's France's connection with Mona Lisa?")
                     .build();
 
-            StringBuffer sb = new StringBuffer("");
+            StringBuffer sb = new StringBuffer();
 
             OllamaChatResult chatResult = ollamaAPI.chat(requestModel, (s) -> {
                 LOG.info(s);
-                String substring = s.substring(sb.toString().length(), s.length());
+                String substring = s.substring(sb.toString().length());
                 LOG.info(substring);
                 sb.append(substring);
             });
@@ -320,12 +320,12 @@ class TestRealAPIs {
         testEndpointReachability();
         File imageFile = getImageFileFromClasspath("dog-on-a-boat.jpg");
         try {
-            StringBuffer sb = new StringBuffer("");
+            StringBuffer sb = new StringBuffer();
 
             OllamaResult result = ollamaAPI.generateWithImageFiles(config.getImageModel(),
                     "What is in this image?", Arrays.asList(imageFile), new OptionsBuilder().build(), (s) -> {
                         LOG.info(s);
-                        String substring = s.substring(sb.toString().length(), s.length());
+                        String substring = s.substring(sb.toString().length());
                         LOG.info(substring);
                         sb.append(substring);
                     });

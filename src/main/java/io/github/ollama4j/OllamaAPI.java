@@ -234,11 +234,8 @@ public class OllamaAPI {
      * @return a list of {@link LibraryModelTag} objects containing the extracted tags and their associated metadata.
      * @throws OllamaBaseException  if the HTTP response status code indicates an error (i.e., not 200 OK),
      *                              or if there is any other issue during the request or response processing.
-     * @throws IOException          if an input/output exception occurs during the HTTP request or response handling.
-     * @throws InterruptedException if the thread is interrupted while waiting for the HTTP response.
-     * @throws URISyntaxException   if the URI format is incorrect or invalid.
      */
-    public LibraryModelDetail getLibraryModelDetails(LibraryModel libraryModel) throws OllamaBaseException, IOException, InterruptedException, URISyntaxException {
+    public LibraryModelDetail getLibraryModelDetails(LibraryModel libraryModel) throws OllamaBaseException {
         String url = String.format("https://ollama.com/library/%s/tags", libraryModel.getName());
         HttpResponse response = doHttpGet(url);
         String responseString = response.body();
@@ -375,11 +372,8 @@ public class OllamaAPI {
      * @param modelName     the name of the custom model to be created.
      * @param modelFilePath the path to model file that exists on the Ollama server.
      * @throws OllamaBaseException  if the response indicates an error status
-     * @throws IOException          if an I/O error occurs during the HTTP request
-     * @throws InterruptedException if the operation is interrupted
-     * @throws URISyntaxException   if the URI for the request is malformed
      */
-    public void createModelWithFilePath(String modelName, String modelFilePath) throws IOException, InterruptedException, OllamaBaseException, URISyntaxException {
+    public void createModelWithFilePath(String modelName, String modelFilePath) throws OllamaBaseException {
         String url = this.host + "/api/create";
         String jsonData = new CustomModelFilePathRequest(modelName, modelFilePath).toString();
 

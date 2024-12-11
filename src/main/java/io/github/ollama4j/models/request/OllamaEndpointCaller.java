@@ -19,7 +19,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.Base64;
 
 /**
@@ -29,10 +28,10 @@ public abstract class OllamaEndpointCaller {
 
     private static final Logger LOG = LoggerFactory.getLogger(OllamaAPI.class);
 
-    private String host;
-    private BasicAuth basicAuth;
-    private long requestTimeoutSeconds;
-    private boolean verbose;
+    private final String host;
+    private final BasicAuth basicAuth;
+    private final long requestTimeoutSeconds;
+    private final boolean verbose;
 
     public OllamaEndpointCaller(String host, BasicAuth basicAuth, long requestTimeoutSeconds, boolean verbose) {
         this.host = host;
@@ -53,9 +52,8 @@ public abstract class OllamaEndpointCaller {
      * @return result answer given by the assistant
      * @throws OllamaBaseException  any response code than 200 has been returned
      * @throws IOException          in case the responseStream can not be read
-     * @throws InterruptedException in case the server is not reachable or network issues happen
      */
-    public OllamaResult callSync(OllamaRequestBody body) throws OllamaBaseException, IOException, InterruptedException {
+    public OllamaResult callSync(OllamaRequestBody body) throws OllamaBaseException, IOException {
         // Create Request
         long startTime = System.currentTimeMillis();
         URI uri = URI.create(this.host + getEndpointSuffix());

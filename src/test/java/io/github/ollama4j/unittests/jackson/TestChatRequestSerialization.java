@@ -1,20 +1,18 @@
 package io.github.ollama4j.unittests.jackson;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
-
-import java.io.File;
-import java.util.Arrays;
-import java.util.List;
-
+import io.github.ollama4j.models.chat.OllamaChatMessageRole;
 import io.github.ollama4j.models.chat.OllamaChatRequest;
+import io.github.ollama4j.models.chat.OllamaChatRequestBuilder;
+import io.github.ollama4j.utils.OptionsBuilder;
 import org.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import io.github.ollama4j.models.chat.OllamaChatMessageRole;
-import io.github.ollama4j.models.chat.OllamaChatRequestBuilder;
-import io.github.ollama4j.utils.OptionsBuilder;
+import java.io.File;
+import java.util.Arrays;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrowsExactly;
 
 public class TestChatRequestSerialization extends AbstractSerializationTest<OllamaChatRequest> {
 
@@ -88,7 +86,7 @@ public class TestChatRequestSerialization extends AbstractSerializationTest<Olla
     public void testRequestWithInvalidCustomOption() {
         OptionsBuilder b = new OptionsBuilder();
         assertThrowsExactly(IllegalArgumentException.class, () -> {
-                OllamaChatRequest req = builder.withMessage(OllamaChatMessageRole.USER, "Some prompt")
+                builder.withMessage(OllamaChatMessageRole.USER, "Some prompt")
                 .withOptions(b.setCustomOption("cust_obj", new Object()).build())
                 .build();
         });
@@ -119,7 +117,7 @@ public class TestChatRequestSerialization extends AbstractSerializationTest<Olla
     public void testWithStreaming() {
         OllamaChatRequest req = builder.withStreaming().build();
         String jsonRequest = serialize(req);
-        assertEquals(deserialize(jsonRequest, OllamaChatRequest.class).isStream(), true);
+        assertEquals(true, deserialize(jsonRequest, OllamaChatRequest.class).isStream());
     }
 
     @Test
@@ -128,6 +126,6 @@ public class TestChatRequestSerialization extends AbstractSerializationTest<Olla
         OllamaChatRequest req = builder.withKeepAlive(expectedKeepAlive)
             .build();
         String jsonRequest = serialize(req);
-        assertEquals(deserialize(jsonRequest, OllamaChatRequest.class).getKeepAlive(), expectedKeepAlive);
+        assertEquals(expectedKeepAlive, deserialize(jsonRequest, OllamaChatRequest.class).getKeepAlive());
     }
 }
