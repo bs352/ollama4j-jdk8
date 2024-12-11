@@ -17,6 +17,7 @@ import org.mockito.Mockito;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -90,24 +91,10 @@ class TestMockedAPIs {
     }
 
     @Test
-    void testGenerateEmbeddings() {
-        OllamaAPI ollamaAPI = Mockito.mock(OllamaAPI.class);
-        String model = OllamaModelType.LLAMA2;
-        String prompt = "some prompt text";
-        try {
-            when(ollamaAPI.generateEmbeddings(model, prompt)).thenReturn(new ArrayList<>());
-            ollamaAPI.generateEmbeddings(model, prompt);
-            verify(ollamaAPI, times(1)).generateEmbeddings(model, prompt);
-        } catch (IOException | OllamaBaseException | InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Test
     void testEmbed() {
         OllamaAPI ollamaAPI = Mockito.mock(OllamaAPI.class);
         String model = OllamaModelType.LLAMA2;
-        List<String> inputs = List.of("some prompt text");
+        List<String> inputs = Arrays.asList("some prompt text");
         try {
             when(ollamaAPI.embed(model, inputs)).thenReturn(new OllamaEmbedResponseModel());
             ollamaAPI.embed(model, inputs);
@@ -121,7 +108,7 @@ class TestMockedAPIs {
     void testEmbedWithEmbedRequestModel() {
         OllamaAPI ollamaAPI = Mockito.mock(OllamaAPI.class);
         String model = OllamaModelType.LLAMA2;
-        List<String> inputs = List.of("some prompt text");
+        List<String> inputs = Arrays.asList("some prompt text");
         try {
             when(ollamaAPI.embed(new OllamaEmbedRequestModel(model, inputs))).thenReturn(new OllamaEmbedResponseModel());
             ollamaAPI.embed(new OllamaEmbedRequestModel(model, inputs));
@@ -212,7 +199,7 @@ class TestMockedAPIs {
         OllamaAPI ollamaAPI = Mockito.mock(OllamaAPI.class);
         OllamaChatMessageRole role1 = OllamaChatMessageRole.newCustomRole("role1");
         OllamaChatMessageRole role2 = OllamaChatMessageRole.newCustomRole("role2");
-        List<OllamaChatMessageRole> expectedRoles = List.of(role1, role2);
+        List<OllamaChatMessageRole> expectedRoles = Arrays.asList(role1, role2);
         when(ollamaAPI.listRoles()).thenReturn(expectedRoles);
         List<OllamaChatMessageRole> actualRoles = ollamaAPI.listRoles();
         assertEquals(expectedRoles, actualRoles);

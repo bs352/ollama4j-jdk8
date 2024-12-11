@@ -1,5 +1,8 @@
 package io.github.ollama4j.models.response;
 
+import cn.hutool.http.HttpRequest;
+import cn.hutool.http.HttpResponse;
+import cn.hutool.http.Method;
 import io.github.ollama4j.exceptions.OllamaBaseException;
 import io.github.ollama4j.models.generate.OllamaGenerateRequest;
 import io.github.ollama4j.models.generate.OllamaGenerateResponseModel;
@@ -13,17 +16,17 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.concurrent.Callable;
+import java.util.function.Function;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
 @SuppressWarnings("unused")
 public class OllamaAsyncResultStreamer extends Thread {
-    private final HttpRequest.Builder requestBuilder;
+    private final Function<Method, HttpRequest> requestBuilder;
     private final OllamaGenerateRequest ollamaRequestModel;
     private final OllamaResultStream stream = new OllamaResultStream();
     private String completeResponse;
@@ -54,7 +57,7 @@ public class OllamaAsyncResultStreamer extends Thread {
     private long responseTime = 0;
 
     public OllamaAsyncResultStreamer(
-            HttpRequest.Builder requestBuilder,
+            Function<Method, HttpRequest> requestBuilder,
             OllamaGenerateRequest ollamaRequestModel,
             long requestTimeoutSeconds) {
         this.requestBuilder = requestBuilder;
@@ -67,23 +70,15 @@ public class OllamaAsyncResultStreamer extends Thread {
     @Override
     public void run() {
         ollamaRequestModel.setStream(true);
-        HttpClient httpClient = HttpClient.newHttpClient();
+        long startTime = System.currentTimeMillis();
+        HttpRequest request = requestBuilder.apply(Method.POST);
         try {
-            long startTime = System.currentTimeMillis();
-            HttpRequest request =
-                    requestBuilder
-                            .POST(
-                                    HttpRequest.BodyPublishers.ofString(
-                                            Utils.getObjectMapper().writeValueAsString(ollamaRequestModel)))
-                            .header("Content-Type", "application/json")
-                            .timeout(Duration.ofSeconds(requestTimeoutSeconds))
-                            .build();
-            HttpResponse<InputStream> response =
-                    httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
-            int statusCode = response.statusCode();
+            request.body(Utils.getObjectMapper().writeValueAsString(ollamaRequestModel));
+            HttpResponse response = request.execute();
+            int statusCode = response.getStatus();
             this.httpStatusCode = statusCode;
 
-            InputStream responseBodyStream = response.body();
+            InputStream responseBodyStream = response.bodyStream();
             try (BufferedReader reader =
                          new BufferedReader(new InputStreamReader(responseBodyStream, StandardCharsets.UTF_8))) {
                 String line;
@@ -113,7 +108,7 @@ public class OllamaAsyncResultStreamer extends Thread {
             if (statusCode != 200) {
                 throw new OllamaBaseException(this.completeResponse);
             }
-        } catch (IOException | InterruptedException | OllamaBaseException e) {
+        } catch (IOException | OllamaBaseException e) {
             this.succeeded = false;
             this.completeResponse = "[FAILED] " + e.getMessage();
         }

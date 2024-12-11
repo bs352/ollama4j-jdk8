@@ -2,6 +2,7 @@ package io.github.ollama4j.models.embeddings;
 
 import io.github.ollama4j.utils.Options;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -16,7 +17,7 @@ public class OllamaEmbedRequestBuilder {
     }
 
     public static OllamaEmbedRequestBuilder getInstance(String model, String... input){
-        return new OllamaEmbedRequestBuilder(model, List.of(input));
+        return new OllamaEmbedRequestBuilder(model, Arrays.asList(input));
     }
 
     public OllamaEmbedRequestBuilder withOptions(Options options){

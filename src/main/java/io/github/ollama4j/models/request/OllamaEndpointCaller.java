@@ -1,5 +1,9 @@
 package io.github.ollama4j.models.request;
 
+import cn.hutool.http.HttpRequest;
+import cn.hutool.http.HttpResponse;
+import cn.hutool.http.HttpUtil;
+import cn.hutool.http.Method;
 import io.github.ollama4j.OllamaAPI;
 import io.github.ollama4j.exceptions.OllamaBaseException;
 import io.github.ollama4j.models.response.OllamaErrorResponse;
@@ -14,9 +18,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Base64;
@@ -57,19 +58,14 @@ public abstract class OllamaEndpointCaller {
     public OllamaResult callSync(OllamaRequestBody body) throws OllamaBaseException, IOException, InterruptedException {
         // Create Request
         long startTime = System.currentTimeMillis();
-        HttpClient httpClient = HttpClient.newHttpClient();
         URI uri = URI.create(this.host + getEndpointSuffix());
-        HttpRequest.Builder requestBuilder =
-                getRequestBuilderDefault(uri)
-                        .POST(
-                                body.getBodyPublisher());
-        HttpRequest request = requestBuilder.build();
-        if (this.verbose) LOG.info("Asking model: " + body.toString());
-        HttpResponse<InputStream> response =
-                httpClient.send(request, HttpResponse.BodyHandlers.ofInputStream());
+        HttpRequest request = createHttpRequest(uri.toString(), Method.POST);
+        request.body(body.getBodyPublisher());
+        if (this.verbose) LOG.info("Asking model: " + body);
+        HttpResponse response = request.execute();
 
-        int statusCode = response.statusCode();
-        InputStream responseBodyStream = response.body();
+        int statusCode = response.getStatus();
+        InputStream responseBodyStream = response.bodyStream();
         StringBuilder responseBuffer = new StringBuilder();
         try (BufferedReader reader =
                      new BufferedReader(new InputStreamReader(responseBodyStream, StandardCharsets.UTF_8))) {
@@ -112,21 +108,16 @@ public abstract class OllamaEndpointCaller {
         }
     }
 
-    /**
-     * Get default request builder.
-     *
-     * @param uri URI to get a HttpRequest.Builder
-     * @return HttpRequest.Builder
-     */
-    private HttpRequest.Builder getRequestBuilderDefault(URI uri) {
-        HttpRequest.Builder requestBuilder =
-                HttpRequest.newBuilder(uri)
-                        .header("Content-Type", "application/json")
-                        .timeout(Duration.ofSeconds(this.requestTimeoutSeconds));
+    private HttpRequest createHttpRequest(String url, Method method) {
+        HttpRequest httpRequest = HttpUtil.createRequest(method, url)
+                .header("Accept", "application/json")
+                .header("Content-type", "application/json")
+                .timeout((int) (requestTimeoutSeconds * 1000));
+
         if (isBasicAuthCredentialsSet()) {
-            requestBuilder.header("Authorization", getBasicAuthHeaderValue());
+            httpRequest.header("Authorization", getBasicAuthHeaderValue());
         }
-        return requestBuilder;
+        return httpRequest;
     }
 
     /**

@@ -1,5 +1,6 @@
 package io.github.ollama4j.integrationtests;
 
+import cn.hutool.core.util.StrUtil;
 import io.github.ollama4j.OllamaAPI;
 import io.github.ollama4j.exceptions.OllamaBaseException;
 import io.github.ollama4j.models.response.ModelDetail;
@@ -8,8 +9,6 @@ import io.github.ollama4j.models.response.OllamaResult;
 import io.github.ollama4j.models.chat.OllamaChatMessageRole;
 import io.github.ollama4j.models.chat.OllamaChatRequestBuilder;
 import io.github.ollama4j.models.chat.OllamaChatResult;
-import io.github.ollama4j.models.embeddings.OllamaEmbeddingsRequestBuilder;
-import io.github.ollama4j.models.embeddings.OllamaEmbeddingsRequestModel;
 import io.github.ollama4j.utils.OptionsBuilder;
 import lombok.Data;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,8 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.ConnectException;
 import java.net.URISyntaxException;
-import java.net.http.HttpConnectTimeoutException;
-import java.util.List;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.Properties;
 
@@ -61,8 +59,6 @@ class TestRealAPIs {
     void testEndpointReachability() {
         try {
             assertNotNull(ollamaAPI.listModels());
-        } catch (HttpConnectTimeoutException e) {
-            fail(e.getMessage());
         } catch (Exception e) {
             fail(e);
         }
@@ -196,7 +192,7 @@ class TestRealAPIs {
 
             OllamaChatResult chatResult = ollamaAPI.chat(requestModel);
             assertNotNull(chatResult);
-            assertFalse(chatResult.getResponse().isBlank());
+            assertFalse(StrUtil.isBlank(chatResult.getResponse()));
             assertEquals(4, chatResult.getChatHistory().size());
         } catch (IOException | OllamaBaseException | InterruptedException e) {
             fail(e);
@@ -217,7 +213,7 @@ class TestRealAPIs {
 
             OllamaChatResult chatResult = ollamaAPI.chat(requestModel);
             assertNotNull(chatResult);
-            assertFalse(chatResult.getResponse().isBlank());
+            assertFalse(StrUtil.isBlank(chatResult.getResponse()));
             assertTrue(chatResult.getResponse().startsWith("NI"));
             assertEquals(3, chatResult.getChatHistory().size());
         } catch (IOException | OllamaBaseException | InterruptedException e) {
@@ -259,7 +255,7 @@ class TestRealAPIs {
                     OllamaChatRequestBuilder.getInstance(config.getImageModel());
             OllamaChatRequest requestModel =
                     builder.withMessage(OllamaChatMessageRole.USER, "What's in the picture?",
-                            List.of(getImageFileFromClasspath("dog-on-a-boat.jpg"))).build();
+                            Arrays.asList(getImageFileFromClasspath("dog-on-a-boat.jpg"))).build();
 
             OllamaChatResult chatResult = ollamaAPI.chat(requestModel);
             assertNotNull(chatResult);
@@ -308,7 +304,7 @@ class TestRealAPIs {
                     ollamaAPI.generateWithImageFiles(
                             config.getImageModel(),
                             "What is in this image?",
-                            List.of(imageFile),
+                            Arrays.asList(imageFile),
                             new OptionsBuilder().build());
             assertNotNull(result);
             assertNotNull(result.getResponse());
@@ -327,7 +323,7 @@ class TestRealAPIs {
             StringBuffer sb = new StringBuffer("");
 
             OllamaResult result = ollamaAPI.generateWithImageFiles(config.getImageModel(),
-                    "What is in this image?", List.of(imageFile), new OptionsBuilder().build(), (s) -> {
+                    "What is in this image?", Arrays.asList(imageFile), new OptionsBuilder().build(), (s) -> {
                         LOG.info(s);
                         String substring = s.substring(sb.toString().length(), s.length());
                         LOG.info(substring);
@@ -351,7 +347,7 @@ class TestRealAPIs {
                     ollamaAPI.generateWithImageURLs(
                             config.getImageModel(),
                             "What is in this image?",
-                            List.of(
+                            Arrays.asList(
                                     "https://t3.ftcdn.net/jpg/02/96/63/80/360_F_296638053_0gUVA4WVBKceGsIr7LNqRWSnkusi07dq.jpg"),
                             new OptionsBuilder().build());
             assertNotNull(result);
@@ -362,22 +358,6 @@ class TestRealAPIs {
         }
     }
 
-    @Test
-    @Order(3)
-    public void testEmbedding() {
-        testEndpointReachability();
-        try {
-            OllamaEmbeddingsRequestModel request = OllamaEmbeddingsRequestBuilder
-                    .getInstance(config.getModel(), "What is the capital of France?").build();
-
-            List<Double> embeddings = ollamaAPI.generateEmbeddings(request);
-
-            assertNotNull(embeddings);
-            assertFalse(embeddings.isEmpty());
-        } catch (IOException | OllamaBaseException | InterruptedException e) {
-            fail(e);
-        }
-    }
 }
 
 @Data
